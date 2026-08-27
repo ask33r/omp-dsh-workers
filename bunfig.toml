@@ -1,0 +1,16 @@
+# The search scope for bun tests is narrowed to extensions/** deliberately.
+#
+# WHY: mock.module() in bun is process-global and is not rolled back between
+# files. A bare `bun test` would run the whole repository in one process, and
+# the mocks from extensions/dsh-task/*.test.ts would substitute
+# tools/dsh-bridge/src/index.js for the bridge's node tests too: startDsh
+# would return { pid: 1, pgid: 1 }, and cleanup would turn kill into kill(-1)
+# — a broadcast to every process of the user (in a container this kills the
+# entire session).
+#
+# The bridge's node tests are run by a separate runner: `bun run test:bridge`.
+# The second layer of protection — tools/dsh-bridge/test/node-only.js: an
+# explicit `bun test ./tools/...` ignores this root but fails on importing
+# the guard.
+[test]
+root = "extensions"

@@ -1,0 +1,19 @@
+{
+  "name": "@dsh/bridge",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "bridge-core for DSH workers — argv-spawn, envelope v1, registry, reap",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "dsh-bridge": "./bin/dsh-bridge.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

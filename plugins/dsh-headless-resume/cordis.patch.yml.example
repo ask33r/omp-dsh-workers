@@ -1,0 +1,42 @@
+# Example Cordis patch to enable the resume plugin for the headless profile.
+# Copy the relevant `- insert` block into ~/.dsh/profiles/headless/cordis.patch.yml
+# (or use the file/relative plugin form). After editing, restart `dsh --profile headless`.
+
+# Option A — file plugin via relative path (recommended for worktree development):
+#
+#   ln -s <repo>/plugins/dsh-headless-resume \
+#         ~/.dsh/profiles/headless/plugins/dsh-headless-resume
+#
+#   Then in ~/.dsh/profiles/headless/cordis.patch.yml add:
+
+- insert:
+    - id: headless-resume-startup
+      name: ./plugins/dsh-headless-resume/src/startup.js
+      # Parses [task...] + --resume <id> and provides headlessStartup.{task,resumeSessionId}
+    - id: headless-resume-runner
+      name: ./plugins/dsh-headless-resume/src/index.js
+      inject: [headlessStartup]
+      config:
+        task: !!js ctx.headlessStartup.task
+        resumeSessionId: !!js ctx.headlessStartup.resumeSessionId
+
+# Option B — disable the upstream runner and replace it (if you want resume-runner to fully
+# own create vs resume). Prefer A and disable upstream explicitly:
+
+# - id: headless-startup
+#   disabled: true
+# - insert: ... (as above, but headless-resume-startup now owns the positional+--resume grammar)
+
+# Option C — local npm package (bare specifier, needs `pnpm add file:…` in the profile):
+#
+#   pnpm --dir ~/.dsh/profiles/headless add file:<repo>/plugins/dsh-headless-resume
+#
+#   - insert:
+#       - id: headless-resume-startup
+#         name: 'dsh-headless-resume/startup'
+#       - id: headless-resume-runner
+#         name: 'dsh-headless-resume'
+#         inject: [headlessStartup]
+#         config:
+#           task: !!js ctx.headlessStartup.task
+#           resumeSessionId: !!js ctx.headlessStartup.resumeSessionId

@@ -1,0 +1,54 @@
+# CI runs only the test scripts that do not need an installed DeepSeek Harness (DSH).
+# Excluded: test:resume — scripts/link-plugin-deps.sh links the plugin against the
+#   installed DSH modules (DSH_MODULES, default /opt/agent-tools/dsh/current/node_modules)
+#   and exits 1 when they are absent. Run it locally after installing DSH.
+# Included: test:unit, test:integration, test:bridge — each verified to pass
+#   with DSH_MODULES=/nonexistent, no `dsh` binary on PATH, and an empty $HOME
+#   (195 / 11 / 160 tests).
+# The empty $HOME is part of the contract, not a detail: tests must never read the
+#   developer's live ~/.omp or ~/.dsh. Three of them once did, through a production
+#   call that resolves the agent directory on its own, and stayed green only while
+#   the machine's @dsh role happened to match their fixture. So the test steps below
+#   set HOME explicitly rather than relying on a hosted runner having no ~/.omp —
+#   otherwise this job would pass such a test by accident, exactly as that machine did.
+#   `bun install` keeps the real HOME on purpose, for its module cache.
+# NB: never add a bare `bun test` step — bunfig.toml scopes bun's discovery to
+#   extensions/**, and the bridge tests are node-only on purpose (see README).
+# typecheck/lint/format:check run BEFORE the tests: they are seconds-long and need no
+#   HOME isolation, so a broken type or an unformatted file fails the job immediately
+#   instead of after the ~40 s bridge suite.
+# Trigger on branch pushes only: a release tag points at a commit main has already
+#   tested, so a tag push would only re-run the same suite a second time.
+name: test
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install
+      - name: typecheck
+        run: bun run typecheck
+      - name: lint
+        run: bun run lint
+      - name: format:check
+        run: bun run format:check
+      - name: Clean HOME for the test steps
+        run: mkdir -p "$RUNNER_TEMP/clean-home"
+      - name: test:unit
+        run: bun run test:unit
+        env:
+          HOME: ${{ runner.temp }}/clean-home
+      - name: test:integration
+        run: bun run test:integration
+        env:
+          HOME: ${{ runner.temp }}/clean-home
+      - name: test:bridge
+        run: bun run test:bridge
+        env:
+          HOME: ${{ runner.temp }}/clean-home

@@ -1,0 +1,27 @@
+{
+  "name": "dsh-headless-resume",
+  "version": "0.1.0",
+  "description": "Cordis plugin for headless DSH: --resume support and Envelope v1 printing",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./startup": "./src/startup.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-agent": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-agent-default-model": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-cmdline": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-llm": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-session": "^0.1.1-rc.2",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  }
+}
