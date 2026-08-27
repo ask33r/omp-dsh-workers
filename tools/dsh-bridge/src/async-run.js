@@ -659,20 +659,82 @@ async function waitForEnvelopeFile(envelopeFile, budgetMs) {
   }
 }
 
+/**
+ * Ждёт, пока реестровая запись догонит envelope, в пределах бюджета.
+ *
+ * Envelope-файл и запись в реестре обновляются РАЗДЕЛЬНО и именно в таком
+ * порядке: finalizeIfAbsent сначала закрепляет файл через link(), и только
+ * потом делает updateRun(state, exitCode). Порядок обязателен — реестр должен
+ * отражать тот envelope, который выиграл гонку link() (при EEXIST победитель
+ * чужой), — поэтому окно «файл уже виден, запись ещё running/exitCode: null»
+ * существует у каждого нормально завершившегося рана.
+ *
+ * Внутри этого окна запись — не итог, а финализация в полёте, и читать из неё
+ * exitCode нельзя: получится `completed` + `exitCode: null` (ровно так падал
+ * кейс 4 async-run.test.js в CI на 2 vCPU).
+ *
+ * Сигнал «догнал» — `state !== 'running'`, а НЕ `exitCode != null`: у рана,
+ * убитого сигналом, exitCode легитимно остаётся null, и ждать его пришлось бы
+ * весь бюджет впустую.
+ *
+ * Бюджет — тот же ENVELOPE_GRACE_MS, что и у инварианта 3: это одно и то же
+ * окно «наблюдатель ещё дописывает результат», просто с другой стороны.
+ *
+ * @returns {Promise<object|null>} запись реестра (возможно, всё ещё running,
+ *   если бюджет истёк) либо null, если записи нет вовсе
+ */
+async function awaitRegistrySettled(runId, registryPath, budgetMs) {
+  let entry = await getRun(runId, registryPath);
+  // Записи нет (легитимный сирота) или она уже терминальная — ждать нечего.
+  if (entry?.state !== 'running') return entry;
+
+  const local = activeRuns.get(runId);
+  if (local) {
+    // in-process: наблюдатель — в этом процессе, у него есть donePromise,
+    // который резолвится ПОСЛЕ finalizeIfAbsent целиком, включая updateRun.
+    await raceWithTimeout(local.donePromise, budgetMs);
+    return await getRun(runId, registryPath);
+  }
+
+  // cross-process: donePromise недоступен, единственный канал — реестр;
+  // перечитываем его тем же тиком, что и остальные ожидания моста.
+  const deadline = Date.now() + budgetMs;
+  for (;;) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return entry;
+    await sleep(Math.min(DEFAULT_POLL_INTERVAL_MS, remaining));
+    entry = await getRun(runId, registryPath);
+    if (entry?.state !== 'running') return entry;
+  }
+}
+
+/**
+ * Единственное место, где envelope превращается в результат pollRun. Оба пути
+ * (envelope уже лежал на диске / дождались его через donePromise либо
+ * waitForEnvelopeFile) обязаны отвечать одинаково, иначе гонка вылечена лишь
+ * на одном из них.
+ *
+ * По истечении бюджета отдаём прежний ответ — envelope с тем exitCode, что
+ * есть. Это случай «наблюдатель умер между link и updateRun»: он честно
+ * деградирует до `exitCode: null`, а не подвешивает вызывающего.
+ */
+async function resultFromEnvelope(runId, envelope, registryPath) {
+  const entry = await awaitRegistrySettled(runId, registryPath, ENVELOPE_GRACE_MS);
+  return {
+    runId,
+    state: stateOfEnvelope(envelope),
+    envelope,
+    exitCode: entry?.exitCode ?? envelope.error?.exitCode ?? null,
+  };
+}
+
 export async function pollRun(runId, opts = {}) {
   const registryPath = opts.registryPath;
   const { envelopeFile } = runPaths(runId, registryPath);
 
   const existing = await tryReadEnvelopeFile(envelopeFile);
   if (existing) {
-    const entry = await getRun(runId, registryPath);
-    const exitCode = entry?.exitCode ?? existing.error?.exitCode ?? null;
-    return {
-      runId,
-      state: stateOfEnvelope(existing),
-      envelope: existing,
-      exitCode,
-    };
+    return await resultFromEnvelope(runId, existing, registryPath);
   }
 
   const entry = await getRun(runId, registryPath);
@@ -711,13 +773,7 @@ export async function pollRun(runId, opts = {}) {
       await waitForEnvelopeFile(envelopeFile, ENVELOPE_GRACE_MS);
 
   if (settled && settled !== TIMEOUT_SENTINEL) {
-    const settledEntry = await getRun(runId, registryPath);
-    return {
-      runId,
-      state: stateOfEnvelope(settled),
-      envelope: settled,
-      exitCode: settledEntry?.exitCode ?? settled.error?.exitCode ?? null,
-    };
+    return await resultFromEnvelope(runId, settled, registryPath);
   }
 
   // Инвариант 3, ВТОРАЯ половина: бюджет истёк, envelope так и не появился —

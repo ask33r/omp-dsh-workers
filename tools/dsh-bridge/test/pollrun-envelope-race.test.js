@@ -1,61 +1,20 @@
 import './node-only.js';
 
-import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { link, mkdir, mkdtemp, readFile, unlink, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { pollRun, startDsh } from '../src/async-run.js';
 import { putRun } from '../src/registry.js';
+import { deadPid, linkEnvelopeIfAbsent, makeRaceCtx, sleep } from './race-helpers.js';
 import { rmTestDir } from './tmp-cleanup.js';
 import { describeRun } from './wait-helpers.js';
 
 const FIXTURE_DSH = resolve(join(import.meta.dirname, 'fixtures', 'dsh'));
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-/**
- * Гарантированно мёртвый pid: поднимаем тривиальный процесс и дожидаемся его
- * выхода. Реального «наблюдателя» у такого рана нет — ровно как у рана чужого
- * процесса, который уже упал или ещё не дописал envelope.
- */
-async function deadPid() {
-  const child = spawn('sh', ['-c', 'exit 0'], { stdio: 'ignore' });
-  const pid = child.pid;
-  await new Promise((r) => child.once('close', r));
-  return pid;
-}
-
-/**
- * Пишет envelope так же, как это делает finalizeIfAbsent в мосте: tmp + link,
- * то есть «создать, если ещё нет». Это принципиально для теста: если pollRun
- * успел закрепить свой синтетический killed, настоящий envelope проиграет
- * гонку и будет отброшен — именно так теряется результат успешного рана.
- */
-async function linkEnvelopeIfAbsent(envelopeFile, envelope) {
-  const tmp = `${envelopeFile}.tmp.${randomUUID()}`;
-  await writeFile(tmp, `${JSON.stringify(envelope, null, 2)}\n`, 'utf8');
-  try {
-    await link(tmp, envelopeFile);
-  } catch {
-    /* EEXIST — кто-то уже закрепил свой envelope, наш отбрасывается */
-  }
-  await unlink(tmp).catch(() => {});
-}
-
-/** Каталог кейса с реестром внутри: runs/ приватный, никто чужой в него не пишет. */
-async function makeCtx() {
-  const dir = await mkdtemp(join(tmpdir(), 'pollrun-race-'));
-  const registryPath = join(dir, 'runs.json');
-  const runsDir = join(dir, 'runs');
-  await mkdir(runsDir, { recursive: true });
-  return { dir, registryPath, runsDir };
-}
+const makeCtx = () => makeRaceCtx('pollrun-envelope-');
 
 describe('pollRun: envelope дописывается ПОСЛЕ смерти pid', () => {
   // Гонка (баг раунда 2, класс E): pollRun видит «pid мёртв + envelope-файла

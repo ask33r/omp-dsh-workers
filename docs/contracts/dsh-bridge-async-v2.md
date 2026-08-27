@@ -102,6 +102,16 @@ readRunOutput(runId: string, opts?: {
    Synthesizing earlier would not merely answer imprecisely: `finalizeIfAbsent`
    commits through `link()`, so the real envelope written a moment later loses
    on `EEXIST` and a successful run stays killed forever.
+   The same grace covers the mirror image of that window. The envelope file and
+   the registry entry are updated **separately** — `link()` first, `updateRun`
+   (`state`, `exitCode`) after — so an envelope on disk may coexist with an
+   entry still reading `running`/`exitCode: null`. That entry is a finalization
+   in flight, not an outcome: `pollRun` never returns a result while the entry
+   is still `running`, but waits for it within the same `ENVELOPE_GRACE_MS`
+   (local `donePromise`, or re-reading the entry for a foreign run). The
+   settled signal is `state !== 'running'`, not a non-null `exitCode` — a run
+   killed by a signal legitimately has none. Once the grace expires the
+   previous answer stands: the envelope with whatever `exitCode` is recorded.
 4. **The run's timeout is guarded by the bridge, not by the caller.** `timeoutMs` expired →
    the group is killed, envelope `error/timeout`.
 5. **`kill` with any signal goes only through `killPgid`/`killPid`.** A direct

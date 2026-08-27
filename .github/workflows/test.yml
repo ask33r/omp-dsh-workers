@@ -4,7 +4,7 @@
 #   and exits 1 when they are absent. Run it locally after installing DSH.
 # Included: test:unit, test:integration, test:bridge — each verified to pass
 #   with DSH_MODULES=/nonexistent, no `dsh` binary on PATH, and an empty $HOME
-#   (195 / 11 / 160 tests).
+#   (195 / 11 / 164 tests).
 # The empty $HOME is part of the contract, not a detail: tests must never read the
 #   developer's live ~/.omp or ~/.dsh. Three of them once did, through a production
 #   call that resolves the agent directory on its own, and stayed green only while

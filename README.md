@@ -161,11 +161,11 @@ Defaults: run deadline 30 min; owner lease 5 min, renewed by each `dsh_wait` win
 ## Tests
 
 ```sh
-bun run test          # unit + integration + bridge = 366 tests, no installed DSH needed
+bun run test          # unit + integration + bridge = 370 tests, no installed DSH needed
 bun run test:resume   # resume plugin — needs an installed DSH
 ```
 
-Verified counts on this tree: 195 unit + 11 integration + 160 bridge = **366 tests**, passing without an installed DSH. Unit mocks bridge-core; integration and bridge run against a fake `dsh` binary injected through `DSH_BINARY`. CI runs the same three suites with a clean `HOME`, after `typecheck`, `lint`, `format:check` (strict tsc, Biome). `test:resume` imports `@deepseek-ai/*` at runtime — DSH must be installed.
+Verified counts on this tree: 195 unit + 11 integration + 164 bridge = **370 tests**, passing without an installed DSH. Unit mocks bridge-core; integration and bridge run against a fake `dsh` binary injected through `DSH_BINARY`. CI runs the same three suites with a clean `HOME`, after `typecheck`, `lint`, `format:check` (strict tsc, Biome). `test:resume` imports `@deepseek-ai/*` at runtime — DSH must be installed.
 
 ## Limitations
 
