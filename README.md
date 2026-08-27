@@ -2,7 +2,7 @@
 
 [![test](https://github.com/ask33r/omp-dsh-workers/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ask33r/omp-dsh-workers/actions/workflows/test.yml)
 
-Run DeepSeek Harness (DSH) workers from your [oh-my-pi](https://github.com/can1357/oh-my-pi) session. oh-my-pi (OMP) is a terminal coding agent; DeepSeek Harness (DSH, `dsh`) is an agent runtime that boots named profiles, and its `headless` profile answers one task and exits. The session becomes the **director**: it hands out briefs with `dsh_spawn`, each worker runs as a persistent `dsh --profile headless` session, and worker questions and results return as native messages relayed by a script.
+Run DeepSeek Harness (DSH) workers from your [oh-my-pi](https://github.com/can1357/oh-my-pi) session. oh-my-pi (OMP) is a terminal coding agent; DeepSeek Harness (`dsh`) is DeepSeek's agent runtime. The session becomes the **director**: it hands out briefs with `dsh_spawn`, each worker runs as a persistent `dsh --profile headless` session, and worker questions and results return as native messages relayed by a script.
 
 Experimental **v0.1**: the interfaces are frozen in `docs/contracts/`, but nothing here has been through a public release cycle yet.
 
@@ -44,7 +44,7 @@ The director spawns with `dsh_spawn`, answers with `dsh_answer`, steers with `ds
 | Path | What it is |
 |---|---|
 | `extensions/dsh-task/` | The OMP extension: `dsh_task`, `dsh_spawn`, `dsh_answer`, `dsh_wait`, `dsh_kill`, `dsh_send`, `dsh_list`, the relay script (`relay.ts`), `/dvibe`, an orphan watchdog. |
-| `tools/dsh-bridge/` | bridge-core: spawn in its own detached process group, run registry, Envelope v1, steer channel, owner lease and reaping. Node ≥ 22, no runtime dependencies; plain ESM JavaScript, no build step, runs under `node` directly. |
+| `tools/dsh-bridge/` | bridge-core: spawn in its own detached process group, run registry, Envelope v1, steer channel, owner lease and reaping. Node ≥ 22, plain ESM JavaScript, no dependencies and no build step. |
 | `plugins/dsh-headless-resume/` | Cordis plugin in DSH's headless profile: adds `--resume`, prints Envelope v1, runs model preflight, reads the steer channel. |
 | `scripts/` | Installation: symlinks into the live OMP dir, the DSH profile patch, plugin dependency linking. |
 
