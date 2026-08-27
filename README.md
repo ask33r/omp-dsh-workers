@@ -1,5 +1,7 @@
 # omp-dsh-workers
 
+[![test](https://github.com/ask33r/omp-dsh-workers/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ask33r/omp-dsh-workers/actions/workflows/test.yml)
+
 Run DeepSeek Harness (DSH) workers from your [oh-my-pi](https://github.com/can1357/oh-my-pi) session. The session becomes the **director**: it hands out briefs with `dsh_spawn`, each worker runs as a persistent `dsh --profile headless` session, and worker questions and results return as native messages relayed by a script.
 
 Experimental **v0.1**: the interfaces are frozen in `docs/contracts/`, but nothing here has been through a public release cycle yet.
