@@ -3,9 +3,16 @@
      aria-label="Architecture of omp-dsh-workers. Director, the main OMP session with /dvibe on, calls dsh_spawn with brief, label and model on dsh-bridge, which does argv spawn, run registry and steer channel. The bridge starts a DSH headless run with the resume plugin via dsh --profile headless [--resume]; the run answers with Envelope v1 as the last stdout line. The bridge polls relay.ts, the in-process script representative, with pollRun every 1s, and relay.ts delivers the labelled question, result or failure as a followUp message back to the Director. The Director replies with dsh_answer, which resumes the session, and steers out of band over dashed control edges: dsh_list then dsh_send or dsh_wait by runId, and dsh_kill by runId."
      font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
 
+  <!--
+    Variant B - glow. Timeline unchanged from the original 10s loop. On arrival the
+    node gets a soft blurred halo behind it (0 -> 0.5 -> 0 over 1.2s) and its outline
+    crossfades to the accent over the same window. Fill and text never change.
+    Arrivals: dsh-bridge 0.70s and 2.70s, DSH headless run 1.70s,
+              relay.ts 4.84s, Director 8.75s.
+  -->
   <!-- readers who ask for less motion get the static diagram; it carries every label already -->
   <style>
-    @media (prefers-reduced-motion: reduce) { .pulse, .ring { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .pulse, .halo, .lit { display: none; } }
   </style>
 
   <defs>
@@ -14,6 +21,12 @@
             markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto">
       <path d="M 0 0.6 L 11 5.5 L 0 10.4 Z" fill="#656c76"/>
     </marker>
+    <!-- generous filter region so nothing is clipped: stdDeviation 11 reaches ~33px, and
+         the region is a percentage of the bbox of the whole halo group (1104x352), so
+         -25%/-45% leaves 276px/158px of slack on every side -->
+    <filter id="halo" x="-25%" y="-45%" width="150%" height="190%">
+      <feGaussianBlur stdDeviation="11"/>
+    </filter>
   </defs>
 
   <!-- card: opaque, so the diagram reads the same in light and dark GitHub themes -->
@@ -78,6 +91,31 @@
     <text x="302" y="356" fill-opacity="0.6">by runId</text>
   </g>
 
+  <!-- halo: blurred copies of the node plates, drawn under the nodes so only the
+       spill shows. Blur reaches ~33px and stays well inside the card. -->
+  <g class="halo" fill="#58a6ff" filter="url(#halo)">
+    <rect x="48" y="88" width="232" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;.5;0;0" keyTimes="0;.875;.915;.995;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 .2 1;0 0 1 1"/>
+    </rect>
+    <rect x="456" y="88" width="312" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;.5;0;0;.5;0;0" keyTimes="0;.070;.110;.190;.270;.310;.390;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 .2 1;0 0 1 1"/>
+    </rect>
+    <rect x="944" y="88" width="208" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;.5;0;0" keyTimes="0;.170;.210;.290;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 .2 1;0 0 1 1"/>
+    </rect>
+    <rect x="884" y="344" width="268" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;.5;0;0" keyTimes="0;.484;.524;.604;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 .2 1;0 0 1 1"/>
+    </rect>
+  </g>
+
   <!-- nodes -->
   <g text-anchor="middle">
     <g>
@@ -102,23 +140,28 @@
     </g>
   </g>
 
-  <!-- arrival rings: the node the pulse just reached brightens for 0.4s -->
-  <g class="ring" fill="none" stroke="#58a6ff" stroke-width="1.8" opacity="0">
-    <rect x="48" y="88" width="232" height="96" rx="12">
-      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
-               values="0;0;0.85;0;0" keyTimes="0;0.875;0.893;0.915;1"/>
+  <!-- lit outlines: the accent stroke crossfades over the resting one, same geometry
+       and same width, so nothing moves - only the colour of the border changes -->
+  <g class="lit" fill="none" stroke="#58a6ff" stroke-width="1.5">
+    <rect x="48" y="88" width="232" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;1;1;0;0" keyTimes="0;.875;.900;.945;.995;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 1 1"/>
     </rect>
-    <rect x="456" y="88" width="312" height="96" rx="12">
-      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
-               values="0;0;0.85;0;0;0.85;0;0" keyTimes="0;0.070;0.088;0.110;0.270;0.288;0.310;1"/>
+    <rect x="456" y="88" width="312" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;1;1;0;0;1;1;0;0" keyTimes="0;.070;.095;.140;.190;.270;.295;.340;.390;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 1 1"/>
     </rect>
-    <rect x="944" y="88" width="208" height="96" rx="12">
-      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
-               values="0;0;0.85;0;0" keyTimes="0;0.170;0.188;0.210;1"/>
+    <rect x="944" y="88" width="208" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;1;1;0;0" keyTimes="0;.170;.195;.240;.290;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 1 1"/>
     </rect>
-    <rect x="884" y="344" width="268" height="96" rx="12">
-      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
-               values="0;0;0.85;0;0" keyTimes="0;0.484;0.502;0.524;1"/>
+    <rect x="884" y="344" width="268" height="96" rx="12" opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="spline"
+               values="0;0;1;1;0;0" keyTimes="0;.484;.509;.554;.604;1"
+               keySplines="0 0 1 1;0 0 .2 1;0 0 1 1;0 0 .2 1;0 0 1 1"/>
     </rect>
   </g>
 
