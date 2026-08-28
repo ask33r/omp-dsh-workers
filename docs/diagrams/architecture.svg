@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 490" width="1200" height="490"
+     role="img"
+     aria-label="Architecture of omp-dsh-workers. Director, the main OMP session with /dvibe on, calls dsh_spawn with brief, label and model on dsh-bridge, which does argv spawn, run registry and steer channel. The bridge starts a DSH headless run with the resume plugin via dsh --profile headless [--resume]; the run answers with Envelope v1 as the last stdout line. The bridge polls relay.ts, the in-process script representative, with pollRun every 1s, and relay.ts delivers the labelled question, result or failure as a followUp message back to the Director. The Director replies with dsh_answer, which resumes the session, and steers out of band over dashed control edges: dsh_list then dsh_send or dsh_wait by runId, and dsh_kill by runId."
+     font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+
+  <!-- readers who ask for less motion get the static diagram; it carries every label already -->
+  <style>
+    @media (prefers-reduced-motion: reduce) { .pulse, .ring { display: none; } }
+  </style>
+
+  <defs>
+    <!-- one arrowhead for both edge kinds; the dash pattern alone marks the control plane -->
+    <marker id="ah" viewBox="0 0 11 11" refX="10" refY="5.5"
+            markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto">
+      <path d="M 0 0.6 L 11 5.5 L 0 10.4 Z" fill="#656c76"/>
+    </marker>
+  </defs>
+
+  <!-- card: opaque, so the diagram reads the same in light and dark GitHub themes -->
+  <rect x="0.75" y="0.75" width="1198.5" height="488.5" rx="20"
+        fill="#0d1117" stroke="#656c76" stroke-opacity="0.5" stroke-width="1.5"/>
+
+  <!-- edges: the main loop -->
+  <g fill="none" stroke="#656c76" stroke-width="1.6" marker-end="url(#ah)">
+    <path d="M 280 112 H 456"/>
+    <path d="M 768 112 H 944"/>
+    <path d="M 944 156 H 768"/>
+    <path d="M 700 184 V 280 Q 700 300 720 300 H 998 Q 1018 300 1018 320 V 344"/>
+    <path d="M 884 392 H 224 Q 164 392 164 336 V 184"/>
+    <path d="M 280 156 H 456"/>
+  </g>
+  <!-- edges: the control plane, static on purpose -->
+  <g fill="none" stroke="#656c76" stroke-width="1.4"
+     stroke-dasharray="5 5" marker-end="url(#ah)">
+    <path d="M 200 184 V 222 Q 200 242 220 242 H 480 Q 500 242 500 222 V 184"/>
+    <path d="M 240 184 V 296 Q 240 316 260 316 H 520 Q 540 316 540 296 V 184"/>
+  </g>
+
+  <!-- edge labels: each sits beside its own line, on a plate in the card colour -->
+  <g font-size="12.5" text-anchor="middle" fill="#e6edf3">
+
+    <!-- D to B : spawn -->
+    <rect x="294" y="62" width="150" height="38" rx="5" fill="#0d1117"/>
+    <text x="368" y="77" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh_spawn —</text>
+    <text x="368" y="94" fill-opacity="0.6">brief, label, model</text>
+
+    <!-- B to X : headless spawn -->
+    <rect x="776" y="62" width="160" height="38" rx="5" fill="#0d1117"/>
+    <text x="856" y="77" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh --profile</text>
+    <text x="856" y="94" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.6">headless [--resume]</text>
+
+    <!-- D to B : answer -->
+    <rect x="294" y="168" width="150" height="38" rx="5" fill="#0d1117"/>
+    <text x="368" y="183" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh_answer —</text>
+    <text x="368" y="200" fill-opacity="0.6">resumes the session</text>
+
+    <!-- X to B : envelope -->
+    <rect x="785" y="168" width="142" height="38" rx="5" fill="#0d1117"/>
+    <text x="856" y="183" fill-opacity="0.92">Envelope v1</text>
+    <text x="856" y="200" fill-opacity="0.6">(last stdout line)</text>
+
+    <!-- B to relay.ts : poll -->
+    <rect x="807" y="268" width="98" height="22" rx="5" fill="#0d1117"/>
+    <text x="856" y="283"><tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">pollRun</tspan><tspan fill-opacity="0.6">, 1s</tspan></text>
+
+    <!-- relay.ts to D : relayed message -->
+    <rect x="388" y="404" width="332" height="26" rx="5" fill="#0d1117"/>
+    <text x="554" y="421" fill-opacity="0.6">⟨label⟩ question / result / failure (followUp)</text>
+
+    <!-- D to B, dashed : steering -->
+    <rect x="256" y="256" width="220" height="38" rx="5" fill="#0d1117"/>
+    <text x="366" y="271" fill-opacity="0.6">steering: <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh_list</tspan> →</text>
+    <text x="366" y="288" fill-opacity="0.6"><tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh_send</tspan> / <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh_wait</tspan> by runId</text>
+
+    <!-- D to B, dashed : kill -->
+    <rect x="264" y="324" width="76" height="38" rx="5" fill="#0d1117"/>
+    <text x="302" y="339" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill-opacity="0.92">dsh_kill</text>
+    <text x="302" y="356" fill-opacity="0.6">by runId</text>
+  </g>
+
+  <!-- nodes -->
+  <g text-anchor="middle">
+    <g>
+      <rect x="48" y="88" width="232" height="96" rx="12" fill="#161b22" stroke="#656c76" stroke-width="1.5"/>
+      <text x="164" y="130" font-size="18" font-weight="600" fill="#e6edf3">Director</text>
+      <text x="164" y="153" font-size="12.5" fill="#e6edf3" fill-opacity="0.62">main OMP session, /dvibe on</text>
+    </g>
+    <g>
+      <rect x="456" y="88" width="312" height="96" rx="12" fill="#161b22" stroke="#656c76" stroke-width="1.5"/>
+      <text x="612" y="130" font-size="18" font-weight="600" fill="#e6edf3">dsh-bridge</text>
+      <text x="612" y="153" font-size="12.5" fill="#e6edf3" fill-opacity="0.62">argv spawn · run registry · steer channel</text>
+    </g>
+    <g>
+      <rect x="944" y="88" width="208" height="96" rx="12" fill="#161b22" stroke="#656c76" stroke-width="1.5"/>
+      <text x="1048" y="130" font-size="18" font-weight="600" fill="#e6edf3">DSH headless run</text>
+      <text x="1048" y="153" font-size="12.5" fill="#e6edf3" fill-opacity="0.62">+ resume plugin</text>
+    </g>
+    <g>
+      <rect x="884" y="344" width="268" height="96" rx="12" fill="#161b22" stroke="#656c76" stroke-width="1.5"/>
+      <text x="1018" y="386" font-size="18" font-weight="600" fill="#e6edf3">relay.ts</text>
+      <text x="1018" y="409" font-size="12.5" fill="#e6edf3" fill-opacity="0.62">script representative, in-process</text>
+    </g>
+  </g>
+
+  <!-- arrival rings: the node the pulse just reached brightens for 0.4s -->
+  <g class="ring" fill="none" stroke="#58a6ff" stroke-width="1.8" opacity="0">
+    <rect x="48" y="88" width="232" height="96" rx="12">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;0.85;0;0" keyTimes="0;0.875;0.893;0.915;1"/>
+    </rect>
+    <rect x="456" y="88" width="312" height="96" rx="12">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;0.85;0;0;0.85;0;0" keyTimes="0;0.070;0.088;0.110;0.270;0.288;0.310;1"/>
+    </rect>
+    <rect x="944" y="88" width="208" height="96" rx="12">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;0.85;0;0" keyTimes="0;0.170;0.188;0.210;1"/>
+    </rect>
+    <rect x="884" y="344" width="268" height="96" rx="12">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;0.85;0;0" keyTimes="0;0.484;0.502;0.524;1"/>
+    </rect>
+  </g>
+
+  <!-- pulses: one impulse walks the main loop, 10s per turn -->
+  <g>
+    <!-- 1. spawn : D to B -->
+    <g class="pulse" opacity="0">
+      <circle r="8.5" fill="#58a6ff" opacity="0.16"/>
+      <circle r="3.6" fill="#58a6ff"/>
+      <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                     path="M 280 112 H 456" keyPoints="0;1;1" keyTimes="0;0.070;1"/>
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;1;1;0;0" keyTimes="0;0.008;0.062;0.070;1"/>
+    </g>
+    <!-- 2. headless spawn : B to X -->
+    <g class="pulse" opacity="0">
+      <circle r="8.5" fill="#58a6ff" opacity="0.16"/>
+      <circle r="3.6" fill="#58a6ff"/>
+      <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                     path="M 768 112 H 944" keyPoints="0;0;1;1" keyTimes="0;0.100;0.170;1"/>
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;1;1;0;0" keyTimes="0;0.100;0.108;0.162;0.170;1"/>
+    </g>
+    <!-- 3. envelope : X to B -->
+    <g class="pulse" opacity="0">
+      <circle r="8.5" fill="#58a6ff" opacity="0.16"/>
+      <circle r="3.6" fill="#58a6ff"/>
+      <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                     path="M 944 156 H 768" keyPoints="0;0;1;1" keyTimes="0;0.200;0.270;1"/>
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;1;1;0;0" keyTimes="0;0.200;0.208;0.262;0.270;1"/>
+    </g>
+    <!-- 4. poll : B to relay.ts -->
+    <g class="pulse" opacity="0">
+      <circle r="8.5" fill="#58a6ff" opacity="0.16"/>
+      <circle r="3.6" fill="#58a6ff"/>
+      <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                     path="M 700 184 V 280 Q 700 300 720 300 H 998 Q 1018 300 1018 320 V 344"
+                     keyPoints="0;0;1;1" keyTimes="0;0.300;0.484;1"/>
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;1;1;0;0" keyTimes="0;0.300;0.308;0.476;0.484;1"/>
+    </g>
+    <!-- 5. relayed message : relay.ts to D -->
+    <g class="pulse" opacity="0">
+      <circle r="8.5" fill="#58a6ff" opacity="0.16"/>
+      <circle r="3.6" fill="#58a6ff"/>
+      <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                     path="M 884 392 H 224 Q 164 392 164 336 V 184"
+                     keyPoints="0;0;1;1" keyTimes="0;0.514;0.875;1"/>
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+               values="0;0;1;1;0;0" keyTimes="0;0.514;0.522;0.867;0.875;1"/>
+    </g>
+  </g>
+</svg>

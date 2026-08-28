@@ -21,21 +21,7 @@ Two model levels, deliberately separate:
 
 So `@dsh` names the executor's inherited model when `dsh_spawn` has no `model` — the watcher is code, not a model.
 
-```mermaid
-flowchart TD
-    D["Director<br/>main OMP session, /dvibe on"]
-    B["dsh-bridge<br/>argv spawn · run registry · steer channel"]
-    X["DSH headless run<br/>+ resume plugin"]
-    L["relay.ts<br/>script representative, in-process"]
-    D -->|"dsh_spawn — brief, label, model"| B
-    B -->|"dsh --profile headless [--resume]"| X
-    X -->|"Envelope v1 (last stdout line)"| B
-    B -->|"pollRun, 1s"| L
-    L -->|"⟨label⟩ question / result / failure (followUp)"| D
-    D -->|"dsh_answer — resumes the session"| B
-    D -.->|"steering: dsh_list → dsh_send / dsh_wait by runId"| B
-    D -.->|"dsh_kill by runId"| B
-```
+<img src="docs/diagrams/architecture.svg" width="100%" alt="Architecture of omp-dsh-workers. Director, the main OMP session with /dvibe on, calls dsh_spawn with brief, label and model on dsh-bridge, which does argv spawn, run registry and steer channel. The bridge starts a DSH headless run with the resume plugin via dsh --profile headless [--resume]; the run answers with Envelope v1 as the last stdout line. The bridge polls relay.ts, the in-process script representative, with pollRun every 1s, and relay.ts delivers the labelled question, result or failure as a followUp message back to the Director. The Director replies with dsh_answer, which resumes the session, and steers out of band over dashed control edges: dsh_list then dsh_send or dsh_wait by runId, and dsh_kill by runId.">
 
 The director spawns with `dsh_spawn`, answers with `dsh_answer`, steers with `dsh_send`, waits with `dsh_wait` and cancels with `dsh_kill`; `dsh_list` resolves a label to a runId.
 
