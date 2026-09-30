@@ -1,6 +1,6 @@
 {
   "name": "omp-dsh-workers",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "oh-my-pi extension that turns the main session into a director of external DeepSeek Harness (DSH) workers: direct dsh_spawn, run events relayed into chat by a script representative, persistent DSH sessions, deterministic steering.",
   "license": "MIT",
