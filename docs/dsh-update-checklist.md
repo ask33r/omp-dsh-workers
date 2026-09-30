@@ -14,6 +14,11 @@ But a new release can break it semantically:
 - an entry id that `- insert` attaches to gets renamed → the patch silently stops applying;
 - drift in the `dsh-agent` API (`agents.resume`/`agents.create`) or `dsh-session-persistence`;
 - the headless runner's stdout format changes → the envelope breaks.
+- since 0.2 dsh itself checks a plugin's `@deepseek-ai/dsh*` peer ranges against the runtime
+  and disables incompatible profile rows — the resume plugin must list the new version (after
+  its tests pass on the new release), or the headless runner is disabled and runs hang silently;
+- 0.2 removed `~/.dsh/settings.yaml`: its first run imports the file into whichever profile runs
+  first and renames it `settings.yaml.imported` — shared sections belong in `~/.dsh/cordis.patch.yml`.
 
 Precedent of a silent break: 0.1.1-rc.2 tightened the `reasoningEfforts` schema and dropped
 the entire model catalog on new processes, while an already-running web instance kept working.
@@ -25,6 +30,8 @@ the entire model catalog on new processes, while an already-running web instance
       `NO_ADAPTER: no adapter registered for provider "omniroute"`.
 - [ ] The patch applied: `dsh --profile headless --dump-config` contains the
       resume plugin's entry (otherwise `- insert` did not fire — check the entry id).
+- [ ] The plugin is not refused: the same `--dump-config` run prints no
+      `is incompatible with dsh` on stderr (the entry still shows up in the dump when refused).
 - [ ] Fresh run: `dsh --profile headless "print ok"` → the last line of stdout is a
       valid Envelope v1 (`{"v":1,...,"status":"completed",...}`) with a non-empty
       `sessionId`.

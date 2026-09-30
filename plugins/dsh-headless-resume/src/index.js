@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import z from "@deepseek-ai/schemastery";
 import { installModelSelection } from "@deepseek-ai/dsh-agent";
 import { createUserMessage, isHarnessError, LlmError } from "@deepseek-ai/dsh-llm";
-import { SessionId } from "@deepseek-ai/dsh-session";
+import { SessionId, SessionSeq } from "@deepseek-ai/dsh-session";
 import { startSteerChannel } from "./steer-channel.js";
 
 /** Stable Cordis plugin name. */
@@ -25,6 +25,36 @@ export const internals = {
   stdout: process.stdout,
   stderr: process.stderr,
 };
+
+/**
+ * Прочитать журнал сессии как последовательность событий.
+ *
+ * dsh 0.1.5-rc.1 убрал у Session массив `events`: upstream dsh-headless ходит
+ * через `session.seq` + `session.eventAt(SessionSeq(n))`. Старый путь оставлен
+ * рабочим, чтобы откат dsh на 0.1.1-rc.2 не ломал плагин. Вся зависимость от
+ * версии API живёт здесь одной функцией — не размазана по вызовам.
+ *
+ * Никогда не бросает: дыры в журнале и битая сессия дают пустую выдачу.
+ */
+export function* sessionEvents(session) {
+  if (!session || typeof session !== "object") return;
+  const length = session.seq;
+  if (typeof length === "number" && typeof session.eventAt === "function") {
+    for (let seq = 0; seq < length; seq++) {
+      let event;
+      try {
+        event = session.eventAt(SessionSeq(seq));
+      } catch {
+        continue;
+      }
+      if (event !== undefined && event !== null) yield event;
+    }
+    return;
+  }
+  const legacy = session.events;
+  if (!Array.isArray(legacy)) return;
+  for (const event of legacy) if (event) yield event;
+}
 
 /**
  * Aggregate the last assistant text and turn outcome in one owned interval.
@@ -124,10 +154,8 @@ export function buildEnvelope({ runId, sessionId, status, result, question, erro
  */
 export function modelOfRun(agent, firstSeq) {
   try {
-    const events = agent?.session?.events;
-    if (!Array.isArray(events)) return undefined;
     let last;
-    for (const ev of events) {
+    for (const ev of sessionEvents(agent?.session)) {
       if (!ev || typeof ev.seq !== "number" || ev.seq < firstSeq) continue;
       if (ev.type !== "request/header") continue;
       const cfg = ev?.data?.header?.config;
@@ -372,7 +400,7 @@ export async function run(ctx, task, resumeSessionId, runId, io, opts = {}) {
   }
   await sessions.flush(agent.session);
 
-  const outcome = summarize(agent.session.events, firstSeq);
+  const outcome = summarize(sessionEvents(agent.session), firstSeq);
 
   // Human text first (backward compat with pre-envelope expectations)
   io.stdout.write(outcome.text + (outcome.text.endsWith("\n") ? "" : "\n"));
