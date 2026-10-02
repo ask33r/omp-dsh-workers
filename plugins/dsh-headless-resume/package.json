@@ -1,6 +1,6 @@
 {
   "name": "dsh-headless-resume",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Cordis plugin for headless DSH: --resume support and Envelope v1 printing",
   "license": "MIT",
   "type": "module",

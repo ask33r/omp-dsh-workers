@@ -164,4 +164,4 @@ Verified counts on this tree: 195 unit + 11 integration + 164 bridge = **370 tes
 
 ## Status, history, license
 
-Experimental **v0.1** (`0.1.1`). Interface contracts live in `docs/contracts/`; `docs/dsh-update-checklist.md` covers DSH upgrades. Everything a user or a model reads is English; in-code comments and test names are Russian. [MIT License](LICENSE).
+Experimental **v0.1** (`0.1.2`). Interface contracts live in `docs/contracts/`; `docs/dsh-update-checklist.md` covers DSH upgrades. Everything a user or a model reads is English; in-code comments and test names are Russian. [MIT License](LICENSE).
