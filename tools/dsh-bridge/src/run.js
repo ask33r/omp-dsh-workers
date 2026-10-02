@@ -33,6 +33,9 @@ const ENV_WHITELIST = [
   'FAKE_ENVELOPE_SESSION',
   'DSH_BINARY',
   'DSH_BRIDGE_RUNS_FILE',
+  // Optional lean-overlay path: when set, both runners append --patch <path>
+  // so spawned headless workers run with the lean plugin set + worker persona.
+  'DSH_WORKER_PATCH',
 ];
 
 export function buildEnv(extra) {
@@ -106,6 +109,11 @@ export async function runDsh(opts) {
   // Чтобы избежать shell-инъекции: shell:false, argv-массив.
   const dshBin = resolveDshBinary(opts.env);
   const args = ['--profile', 'headless'];
+  const workerPatch =
+    (opts.env && opts.env.DSH_WORKER_PATCH) || process.env.DSH_WORKER_PATCH;
+  if (workerPatch) {
+    args.push('--patch', String(workerPatch));
+  }
   if (opts.resumeSessionId) {
     args.push('--resume', String(opts.resumeSessionId));
   }

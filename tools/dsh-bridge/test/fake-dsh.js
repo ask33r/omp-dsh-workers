@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Fake dsh binary for bridge-core unit tests.
-// Parses: --profile headless [--resume ID] <task...>
+// Parses: --profile headless [--patch PATH] [--resume ID] <task...>
 // Behavior driven by task content markers.
 import { spawn } from 'node:child_process';
 import { appendFileSync, writeFileSync, readFileSync } from 'node:fs';
@@ -31,6 +31,9 @@ function parseArgs(argv) {
       i++;
     } else if (args[i] === '--profile' && i + 1 < args.length) {
       // skip profile name
+      i++;
+    } else if (args[i] === '--patch' && i + 1 < args.length) {
+      // skip overlay path (lean worker patch)
       i++;
     } else {
       taskParts.push(args[i]);
