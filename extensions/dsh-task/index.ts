@@ -702,6 +702,9 @@ export default function dshTaskExtension(pi: ExtensionAPI): void {
           // DSH помечать их маркером need_input.
           askProtocol: true,
           label: params.label,
+          // Lean-воркер: если окружение omp-сессии задаёт DSH_WORKER_PATCH,
+          // мост подставит --patch <path> спавну (persona + минимум плагинов).
+          env: { ...process.env } as Record<string, string>,
         });
         if (
           typeof handle.runId === "string" &&
@@ -1481,6 +1484,7 @@ export default function dshTaskExtension(pi: ExtensionAPI): void {
           model,
           askProtocol: true,
           label: labelForNewRun,
+          env: { ...process.env } as Record<string, string>,
         });
         if (typeof handle.runId === "string" && handle.runId.length > 0) {
           const relayLabel =
