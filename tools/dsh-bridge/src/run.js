@@ -109,8 +109,7 @@ export async function runDsh(opts) {
   // Чтобы избежать shell-инъекции: shell:false, argv-массив.
   const dshBin = resolveDshBinary(opts.env);
   const args = ['--profile', 'headless'];
-  const workerPatch =
-    (opts.env && opts.env.DSH_WORKER_PATCH) || process.env.DSH_WORKER_PATCH;
+  const workerPatch = (opts.env && opts.env.DSH_WORKER_PATCH) || process.env.DSH_WORKER_PATCH;
   if (workerPatch) {
     args.push('--patch', String(workerPatch));
   }

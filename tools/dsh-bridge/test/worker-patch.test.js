@@ -81,7 +81,7 @@ describe('DSH_WORKER_PATCH lean overlay flag', () => {
         } catch {}
       }
       assert.ok(rawArgs, 'fake-dsh diagnostics log written');
-      assert.equal(rawArgs.indexOf('--patch'), -1, );
+      assert.equal(rawArgs.indexOf('--patch'), -1);
       await killRun(handle.runId, { registryPath, graceMs: 500 }).catch(() => {});
     } finally {
       await rmTestDir(testDir).catch(() => {});
